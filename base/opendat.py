@@ -1,3 +1,4 @@
+import os
 import xarray as xr
 import xmltodict
 from urllib.request import urlopen
@@ -7,6 +8,10 @@ import bz2
 import numpy as np
 import datetime as dt
 
+import requests
+from requests.auth import HTTPBasicAuth
+import tempfile
+
 
 class Opendat:
     """ Class to get data from opendat
@@ -14,9 +19,11 @@ class Opendat:
     :param url_catalog: url to catalog
     :param url_netcdf: url to netCDF files"""
 
-    def __init__(self, url_catalog, url_netcdf):
+    def __init__(self, url_catalog, url_netcdf, user=None, passw=None):
         self.url_catalog = url_catalog
         self.url_netcdf = url_netcdf
+        self.user = user
+        self.passw = passw
 
         self.dt_now = None
         self.dt_now_s = ''
@@ -27,41 +34,61 @@ class Opendat:
 
         self.ds = None
 
-    def catalog(self, last=False, date_s='', text_find='', key_file='@name'):
+    def catalog(self, last=False, date_s='', text_find=None, key_file='@name'):
         """ Get catalog from url and return files available
 
         :param last: get last file
         :param date_s: date to get
-        :param text_find: text to find
+        :param text_find: list of text to find
         :param key_file: key to get file name
         :return: files available"""
 
-        # Read url
-        _file = urlopen(self.url_catalog)
-        data = _file.read()
-        _file.close()
+        self.files_avbl = []
+        self.files_avbl_find = []
+        msg_all = ''
 
-        # Parse to dict format (xml) and get files available in catalog (nc)
-        data = xmltodict.parse(data)
-        self.files_avbl = data['catalog']['dataset']['dataset']
-        self.files_avbl = [_f for _f in self.files_avbl if '.nc' in _f['@name']]
-        print(f'Url para conexión: {self.url_catalog}. Ficheros disponibles: {len(self.files_avbl)}')
+        for url in self.url_catalog:
+            # Read url
+            _file = urlopen(url)
+            data = _file.read()
+            _file.close()
 
-        # Get message to show
-        msg, self.files_avbl_find = '', []
-        if date_s != '':
-            self.files_avbl_find = [_f for _f in self.files_avbl if date_s in _f[key_file]]
-            msg = f'(Fecha: {date_s})'
-        if text_find != '':
-            self.files_avbl_find = [_f for _f in self.files_avbl if text_find in _f[key_file]]
-            msg = f'(Fecha: {date_s})'
-        if len(self.files_avbl_find) == 0 and last:
-            self.files_avbl_find = [self.files_avbl[-1]]
-            msg = f"(Ultima disponible: {self.files_avbl_find[0]['@name']})"
+            # Parse to dict format (xml) and get files available in catalog (nc)
+            data = xmltodict.parse(data)
+            files_avbl = data['catalog']['dataset']['dataset']
+            files_avbl = [_f for _f in files_avbl if '.nc' in _f['@name']]
+            print(f'Url para conexión: {url}. Ficheros disponibles: {len(files_avbl)}')
 
-        print(f'Url para conexión: {self.url_catalog}. Ficheros disponibles: {len(self.files_avbl_find)}. {msg}')
+            self.files_avbl.append(files_avbl)
 
-    def download_nc(self, files_date, key_file, path_save=None):
+            # Get message to show
+            msg, files_avbl_find = '', []
+            if date_s != '':
+                files_avbl_find = [_f for _f in files_avbl if date_s in _f[key_file]]
+                msg = f'(Fecha: {date_s}). '
+                msg_all = 'Filtro fecha'
+            if text_find is not None:
+                files_avbl_text = files_avbl.copy()
+                for text_find_c in text_find:
+                    files_avbl_find = [_f for _f in files_avbl_text if text_find_c in _f[key_file]]
+                    files_avbl_text = files_avbl_find.copy()
+                    msg += f'(Text: {text_find_c}). '
+                msg_all = 'Filtro texto'
+            if len(files_avbl_find) == 0 and last:
+                files_avbl_find = [files_avbl[-1]]
+                msg = f"(Ultima disponible: {files_avbl_find[0]['@name']}). "
+                msg_all = 'Filtro ultimo disponible'
+
+            print(f'Url para conexión: {url}. Ficheros disponibles: {len(files_avbl_find)}. {msg}')
+            self.files_avbl_find.append(files_avbl_find)
+
+        self.files_avbl = [e for sb in self.files_avbl for e in sb]
+        self.files_avbl_find = [e for sb in self.files_avbl_find for e in sb]
+
+        print(f'Ficheros totales disponibles: {len(self.files_avbl)}')
+        print(f'Ficheros totales disponibles: {len(self.files_avbl_find)}. {msg_all}')
+
+    def download_nc(self, files_date, key_file, concat, path_save=None):
         """ Download netCDF files from url and return data in dataset format
 
         :param files_date: files to download
@@ -72,23 +99,40 @@ class Opendat:
         try:
             # Download files and read vars
             for i, file_date_c in enumerate(files_date[::-1]):
-                ds = xr.open_dataset(self.url_netcdf + file_date_c[key_file])
-                ds_all.append(ds)
+                resp = requests.get(self.url_netcdf + file_date_c[key_file], auth=HTTPBasicAuth(self.user, self.passw))
+                if resp.status_code != 200:
+                    print(f'ValueError: La conexión con usuario y contraseña ha fallado.')
+                    exit(-4)
+
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    temp_file.write(resp.content)
+
+                url = temp_file.name
+                resp.close()
+
+                ds = xr.open_dataset(url)
+                temp_file.close()
+
+                if concat:
+                    ds_all.append(ds)
+                else:
+                    if path_save is not None:
+                        ds.to_netcdf(os.path.join(path_save, file_date_c['@name']))
                 print(f"Descargado {file_date_c['@name']} ({i + 1}/{len(files_date)})")
         except Exception as e:
             print(f'ValueError: {e.args[0]}')
             exit(-1)
 
         # Concat vars in one dataset
-        if len(ds_all) > 1:
-            self.ds = xr.concat(ds_all, dim='time')
-        else:
-            self.ds = ds_all[0]
+        if concat:
+            if len(ds_all) > 1:
+                self.ds = xr.concat(ds_all, dim='time')
+                if path_save is not None:
+                    self.ds.to_netcdf(os.path.join(path_save, files_date[0]['@name'] + '_' + files_date[-1]['@name']))
+            else:
+                self.ds = ds_all[0]
 
         print('Descarga de datos completada')
-
-        if path_save is not None:
-            self.ds.to_netcdf(path_save)
 
     def download_bz2_grib2(self, files_date, folder_pred, _vars):
         """ Download bz2 files from url and return data in dataset format
