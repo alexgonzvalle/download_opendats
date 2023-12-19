@@ -68,7 +68,7 @@ class Opendat:
                 msg = f'(Fecha: {date_s}). '
                 msg_all = 'Filtro fecha'
             if text_find is not None:
-                files_avbl_text = files_avbl.copy()
+                files_avbl_text = files_avbl_find.copy() if len(files_avbl_find) > 0 else files_avbl.copy()
                 for text_find_c in text_find:
                     files_avbl_find = [_f for _f in files_avbl_text if text_find_c in _f[key_file]]
                     files_avbl_text = files_avbl_find.copy()
