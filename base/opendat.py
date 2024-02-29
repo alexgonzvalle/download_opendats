@@ -12,6 +12,12 @@ import requests
 from requests.auth import HTTPBasicAuth
 import tempfile
 
+from IPython import get_ipython
+if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
+
 
 class Opendat:
     """ Class to get data from opendat
@@ -47,7 +53,10 @@ class Opendat:
         self.files_avbl_find = []
         msg_all = ''
 
-        for url in self.url_catalog:
+        if type(self.url_catalog) == str:
+            self.url_catalog = [self.url_catalog]
+
+        for url in tqdm(self.url_catalog, desc='Getting catalog'):
             # Read url
             _file = urlopen(url)
             data = _file.read()
@@ -88,20 +97,27 @@ class Opendat:
         print(f'Ficheros totales disponibles: {len(self.files_avbl)}')
         print(f'Ficheros totales disponibles: {len(self.files_avbl_find)}. {msg_all}')
 
-    def download_nc(self, files_date, key_file, concat, path_save=None):
+    def download_nc(self, files_date, key_file, concat, path_save=None, aux_fname=None):
         """ Download netCDF files from url and return data in dataset format
 
         :param files_date: files to download
         :param key_file: key to get file name
+        :param concat: concat vars in one dataset
+        :param path_save: path to save files
+        :param aux_fname: aux file name
         :return: data in dataset format"""
 
-        ds_all = []
+        ds, ds_all = None, []
         try:
             # Download files and read vars
-            for i, file_date_c in enumerate(files_date[::-1]):
+            for i, file_date_c in enumerate(tqdm(files_date[::-1], total=len(files_date), desc='Downloading files')):
                 resp = requests.get(self.url_netcdf + file_date_c[key_file], auth=HTTPBasicAuth(self.user, self.passw))
                 if resp.status_code != 200:
-                    print(f'ValueError: La conexión con usuario y contraseña ha fallado.')
+                    if resp.status_code == 100:
+                        print(f'ValueError: La conexión con usuario y contraseña ha fallado.')
+                    else:
+                        msg_error = 'ValueError: La conexión ha fallado.'
+                    print(msg_error)
                     exit(-4)
 
                 with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -118,7 +134,6 @@ class Opendat:
                 else:
                     if path_save is not None:
                         ds.to_netcdf(os.path.join(path_save, file_date_c['@name']))
-                print(f"Descargado {file_date_c['@name']} ({i + 1}/{len(files_date)})")
         except Exception as e:
             print(f'ValueError: {e.args[0]}')
             exit(-1)
@@ -128,9 +143,12 @@ class Opendat:
             if len(ds_all) > 1:
                 self.ds = xr.concat(ds_all, dim='time')
                 if path_save is not None:
-                    self.ds.to_netcdf(os.path.join(path_save, files_date[0]['@name'] + '_' + files_date[-1]['@name']))
+                    aux_fname = files_date[0]['@name'] + '_' + files_date[-1]['@name'] if aux_fname is None else aux_fname
+                    self.ds.to_netcdf(os.path.join(path_save, aux_fname))
             else:
                 self.ds = ds_all[0]
+        else:
+            self.ds = ds
 
         print('Descarga de datos completada')
 

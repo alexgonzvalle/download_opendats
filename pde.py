@@ -62,11 +62,13 @@ class PDE(Opendat):
             print(f'ValueError: No hay datos disponibles de {self.name_catalog} para la fecha {date_s}')
             exit(-2)
 
-    def get(self, files_date=None, concat=False, path_save=None):
+    def get(self, files_date=None, concat=False, path_save=None, aux_fname=None):
         """ Download netCDF files from url PdE and return data in dataset format
 
         :param files_date: files to download
+        :param concat: concatenate files
         :param path_save: path to save files
+        :param aux_fname: auxiliary file name
         :return: data in dataset format"""
 
         if files_date is None:
@@ -76,4 +78,4 @@ class PDE(Opendat):
         if len(files_date) == 0:
             files_date = self.files_avbl
 
-        super().download_nc(files_date, '@ID', concat, path_save)
+        super().download_nc(files_date, '@ID', concat, path_save, aux_fname)

@@ -9,7 +9,7 @@ class IH(Opendat):
     def __init__(self, name_catalog, user=None, passw=None):
         self.name_catalog = name_catalog
         url_catalog = 'https://ihthredds.ihcantabria.com/thredds/catalog/' + name_catalog + '/catalog.xml'
-        url_netcdf = 'https://ihthredds.ihcantabria.com/thredds/dodsC/'
+        url_netcdf = 'https://ihthredds.ihcantabria.com/thredds/fileServer/'
         super().__init__(url_catalog, url_netcdf, user, passw)
 
     def catalog(self, last=False, date_s='', text_find='', key_file='@name'):
