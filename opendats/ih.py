@@ -1,4 +1,4 @@
-from base.opendat import Opendat
+from opendats.base.opendat import Opendat
 
 
 class IH(Opendat):
