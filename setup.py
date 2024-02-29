@@ -24,7 +24,7 @@ setup(
     url=GITHUB_URL,
     keywords=[],
     install_requires=[
-        'requests', 'os', 'xarray', 'xmltodict', 'urllib', 'wget', 'bz2', 'numpy', 'datetime', 'tqdm', 'tempfile', 'IPython'
+        'requests', 'xarray', 'xmltodict', 'urllib', 'wget', 'bz2', 'numpy', 'datetime', 'tqdm', 'tempfile', 'IPython'
     ],
 
     classifiers=[
