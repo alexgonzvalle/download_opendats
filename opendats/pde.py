@@ -1,4 +1,4 @@
-from opendats.base.opendat import Opendat
+from opendats.opendat import Opendat
 
 
 class PDE(Opendat):
