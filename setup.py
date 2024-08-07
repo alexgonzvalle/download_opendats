@@ -26,7 +26,8 @@ setup(
     install_requires=[
         'requests', 'xarray', 'xmltodict', 'urllib3', 'wget', 'numpy', 'datetime', 'tqdm'
     ],
-
+    package_data={'': ['']},
+    include_package_data=True,
     classifiers=[
         'Programming Language :: Python :: 3',
     ],
