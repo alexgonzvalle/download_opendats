@@ -40,7 +40,7 @@ class Opendat:
 
         self.ds = None
 
-    def catalog(self, last=False, date_s='', text_find=None, key_file='@name'):
+    def catalog(self, last=False, date_s='', text_find=None, key_file='@name', struct_data=['catalog', 'dataset', 'dataset']):
         """ Get catalog from url and return files available
 
         :param last: get last file
@@ -64,7 +64,9 @@ class Opendat:
 
             # Parse to dict format (xml) and get files available in catalog (nc)
             data = xmltodict.parse(data)
-            files_avbl = data['catalog']['dataset']['dataset']
+            for st in struct_data:
+                data = data[st]
+            files_avbl = data
             files_avbl = [_f for _f in files_avbl if '.nc' in _f['@name']]
             print(f'Url para conexión: {url}. Ficheros disponibles: {len(files_avbl)}')
 
