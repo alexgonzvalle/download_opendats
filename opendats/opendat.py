@@ -64,10 +64,8 @@ class Opendat:
 
             # Parse to dict format (xml) and get files available in catalog (nc)
             data = xmltodict.parse(data)
-            for st in struct_data:
-                data = data[st]
-            files_avbl = data
-            files_avbl = [_f for _f in files_avbl if '.nc' in _f['@name']]
+            files_avbl = data['catalog']['dataset']['dataset']
+            files_avbl = [_f for _f in files_avbl if '.nc' in _f[key_file]]
             print(f'Url para conexión: {url}. Ficheros disponibles: {len(files_avbl)}')
 
             self.files_avbl.append(files_avbl)
