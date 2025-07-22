@@ -105,7 +105,7 @@ class Opendat:
         :param concat: concat vars in one dataset
         :param var_save: save variables in one dataset
         :param lonlat_target: target lon/lat
-        :param inds_time: 
+        :param inds_time:
         :param path_save: path to save files
         :param aux_fname: aux file name
         :return: data in dataset format"""
@@ -156,6 +156,7 @@ class Opendat:
                 else:
                     if path_save is not None:
                         ds.to_netcdf(os.path.join(path_save, file_date_c['@name']))
+                        ds.close()
         except Exception as e:
             print(f'ValueError: {e.args[0]}')
             exit(-1)
@@ -167,6 +168,7 @@ class Opendat:
                 if path_save is not None:
                     aux_fname = files_date[0]['@name'] + '_' + files_date[-1]['@name'] if aux_fname is None else aux_fname
                     self.ds.to_netcdf(os.path.join(path_save, aux_fname))
+                    self.ds.close()
             else:
                 self.ds = ds_all[0]
         else:
