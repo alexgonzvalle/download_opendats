@@ -97,7 +97,7 @@ class Opendat:
         print(f'Ficheros totales disponibles: {len(self.files_avbl)}')
         print(f'Ficheros totales disponibles: {len(self.files_avbl_find)}. {msg_all}')
 
-    def download_nc(self, files_date, key_file, concat, var_save=None, lonlat_target=None, path_save=None, aux_fname=None):
+    def download_nc(self, files_date, key_file, concat, var_save=None, lonlat_target=None, inds_time=None, path_save=None, aux_fname=None):
         """ Download netCDF files from url and return data in dataset format
 
         :param files_date: files to download
@@ -105,6 +105,7 @@ class Opendat:
         :param concat: concat vars in one dataset
         :param var_save: save variables in one dataset
         :param lonlat_target: target lon/lat
+        :param inds_time: 
         :param path_save: path to save files
         :param aux_fname: aux file name
         :return: data in dataset format"""
@@ -146,6 +147,9 @@ class Opendat:
                     y_sel = ds.y[int(min_dist_idx['y'])]
 
                     ds = ds.sel(x=x_sel, y=y_sel)
+
+                if inds_time is not None:
+                    ds = ds.isel(time=inds_time)
 
                 if concat:
                     ds_all.append(ds)
