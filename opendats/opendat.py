@@ -97,15 +97,16 @@ class Opendat:
         print(f'Ficheros totales disponibles: {len(self.files_avbl)}')
         print(f'Ficheros totales disponibles: {len(self.files_avbl_find)}. {msg_all}')
 
-    def download_nc(self, files_date, key_file, concat, path_save=None, aux_fname=None, var_save=None):
+    def download_nc(self, files_date, key_file, concat, var_save=None, lonlat_target=None, path_save=None, aux_fname=None):
         """ Download netCDF files from url and return data in dataset format
 
         :param files_date: files to download
         :param key_file: key to get file name
         :param concat: concat vars in one dataset
+        :param var_save: save variables in one dataset
+        :param lonlat_target: target lon/lat
         :param path_save: path to save files
         :param aux_fname: aux file name
-        :param var_save: save variables in one dataset
         :return: data in dataset format"""
 
         ds, ds_all = None, []
@@ -132,6 +133,19 @@ class Opendat:
 
                 if var_save is not None:
                     ds = ds[var_save]
+
+                if lonlat_target is not None:
+                    lon_target, lat_target = lonlat_target[0], lonlat_target[1]
+
+                    # Cálculo de distancia mínima (hipótesis: lon/lat en 2D con dims x, y)
+                    dist = np.sqrt((ds.lon - lon_target) ** 2 + (ds.lat - lat_target) ** 2)
+                    min_dist_idx = dist.argmin(dim=["x", "y"])
+
+                    # Extraer el índice exacto
+                    x_sel = ds.x[int(min_dist_idx['x'])]
+                    y_sel = ds.y[int(min_dist_idx['y'])]
+
+                    ds = ds.sel(x=x_sel, y=y_sel)
 
                 if concat:
                     ds_all.append(ds)
