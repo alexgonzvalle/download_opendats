@@ -78,4 +78,4 @@ class PDE(Opendat):
         if len(files_date) == 0:
             files_date = self.files_avbl
 
-        super().download_nc(files_date, '@ID', concat, path_save, aux_fname)
+        super().download_nc(files_date, '@ID', concat, path_save=path_save, aux_fname=aux_fname)
