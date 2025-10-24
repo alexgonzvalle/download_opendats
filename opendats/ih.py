@@ -40,4 +40,4 @@ class IH(Opendat):
         if len(files_date) == 0:
             files_date = self.files_avbl
 
-        super().download_nc(files_date, '@urlPath', path_save)
+        super().download_nc(files_date, '@urlPath', path_save=path_save)
