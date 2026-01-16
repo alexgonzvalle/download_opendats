@@ -6,9 +6,10 @@ class IH(Opendat):
 
     :param name_catalog: name catalog"""
     
-    def __init__(self, name_catalog, user=None, passw=None):
+    def __init__(self, name_catalog, is_catalog=True, user=None, passw=None):
         self.name_catalog = name_catalog
-        url_catalog = 'https://ihthredds.ihcantabria.com/thredds/catalog/' + name_catalog + '/catalog.xml'
+        aux_cat = 'catalog/' if is_catalog else ''
+        url_catalog = f'https://ihthredds.ihcantabria.com/thredds/{aux_cat}{name_catalog}/catalog.xml'
         url_netcdf = 'https://ihthredds.ihcantabria.com/thredds/fileServer/'
         super().__init__(url_catalog, url_netcdf, user, passw)
 
