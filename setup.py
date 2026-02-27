@@ -24,7 +24,7 @@ setup(
     url=GITHUB_URL,
     keywords=[],
     install_requires=[
-        'requests', 'xarray', 'xmltodict', 'urllib3', 'numpy'
+        'requests', 'xarray', 'xmltodict', 'urllib3', 'numpy', 'logging'
     ],
     package_data={'': ['']},
     include_package_data=True,
