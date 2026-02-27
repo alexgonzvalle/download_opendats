@@ -1,8 +1,5 @@
 import logging
 
-from opendats import ih
-from opendats import pde
-
 logging.basicConfig(level=logging.INFO)
 
 
