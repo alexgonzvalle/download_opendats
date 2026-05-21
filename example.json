@@ -1,0 +1,13 @@
+{
+  "auth": {
+    "user": null,
+    "passw": null
+  },
+  "url_catalog_template": "https://opendap.puertos.es/thredds/catalog/{name_catalog}/{year}/{month:02d}/catalog.xml",
+  "url_netcdf": "https://opendap.puertos.es/thredds/fileServer/",
+  "name_catalog": "wave_coast_s14",
+  "years": [2026],
+  "months": [5],
+  "text_find": "-HC.nc",
+  "out_dir": "data/{name_catalog}"
+}

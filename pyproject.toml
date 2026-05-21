@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opendats"
+version = "1.0.0"
+description = "Download data from Opendats."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "IHCantabria - AGV", email = "gonzalezva@unican.es" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "netCDF4",
+    "numpy",
+    "requests",
+    "urllib3",
+    "xarray",
+    "xmltodict",
+]
+
+[project.urls]
+Homepage = "https://github.com/alexgonzvalle"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
